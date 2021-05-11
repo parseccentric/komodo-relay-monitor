@@ -6,18 +6,26 @@
 
 var RELAY_BASE_URL = "http://localhost:3000";
 
-const pollInterval = 250; // how often to ask the relay server for stuff.
+const pollInterval = 500; // how often to ask the relay server for stuff.
 
 function getAllSessions (socket) {
     socket.emit("sessionsClientsSockets");
+}
+
+function getStateClientsSockets (socket) {
+    socket.emit("stateClientsSockets");
+}
+
+function getAllSessionsWithDetails (socket) {
+    socket.emit("sessionsWithDetails");
 }
 
 function getAllSockets (socket) {
     socket.emit("sockets");
 }
 
-function getAllClients (socket) {
-    socket.emit("clients");
+function getSocketsAndRooms (socket) {
+    socket.emit("socketsAndRooms");
 }
 
 function isEmpty (obj) {
@@ -35,7 +43,7 @@ window.onload = function () {
     });
     
     adminSocket.on("sessionsClientsSockets", function (sessions) {
-        console.dir(sessions);
+        ////console.dir(sessions);
     
         allSessionsEl.innerHTML = '';
 
@@ -46,7 +54,7 @@ window.onload = function () {
 
         var sessionsObj = JSON.parse(sessions);
 
-        console.dir(sessionsObj);
+        ////console.dir(sessionsObj);
         if (isEmpty(sessionsObj)) {
             allSessionsEl.innerHTML = 'None';
             return;
@@ -59,11 +67,77 @@ window.onload = function () {
             }
             
             allSessionsEl.innerHTML += '</ul>';
-        };
+        }
+    });
+
+    adminSocket.on("sessionsWithDetails", function (sessions) {
+        //console.dir(sessions);
+    
+        allSessionsEl.innerHTML = '...';
+
+        if (sessions == null) {
+            allSessionsEl.innerHTML = 'sessions was null';
+            return;
+        }
+
+        if (sessions.length == 0) {
+            allSessionsEl.innerHTML = 'None';
+            return;
+        }
+
+        var sessionsObj = JSON.parse(sessions);
+        
+        allSessionsEl.innerHTML = JSON.stringify(sessionsObj, null, 10);
+    });
+
+    adminSocket.on("stateClientsSockets", function (sessions) {
+        //console.dir(sessions);
+    
+        allSessionsEl.innerHTML = '...';
+
+        if (sessions == null) {
+            allSessionsEl.innerHTML = 'sessions was null';
+            return;
+        }
+
+        if (sessions.length == 0) {
+            allSessionsEl.innerHTML = 'None';
+            return;
+        }
+
+        if (sessions == "") {
+            allSessionsEl.innerHTML = 'sessions was empty string';
+            return;
+        }
+
+        var sessionsObj = JSON.parse(sessions);
+        
+        allSessionsEl.innerHTML = JSON.stringify(sessionsObj, null, 10);
+    });
+
+    adminSocket.on("socketsAndRooms", function (socketsAndRooms) {
+        if (socketsAndRooms == null) {
+            allSocketsEl.innerHTML = 'sessions was null';
+            return;
+        }
+
+        if (socketsAndRooms.length == 0) {
+            allSocketsEl.innerHTML = 'None';
+            return;
+        }
+
+        if (socketsAndRooms == "") {
+            allSocketsEl.innerHTML = 'sessions was empty string';
+            return;
+        }
+
+        var socketsAndRoomsObj = JSON.parse(socketsAndRooms);
+        
+        allSocketsEl.innerHTML = JSON.stringify(socketsAndRoomsObj, null, 10);
     });
     
     adminSocket.on("receiveAllSessions0", function (sessions) {
-        console.dir(sessions);
+        //console.dir(sessions);
     
         allSessionsEl.innerHTML = '';
 
@@ -74,7 +148,7 @@ window.onload = function () {
 
         var sessionsMap = new Map(JSON.parse(sessions));
 
-        console.dir(sessionsMap);
+        //console.dir(sessionsMap);
         if (sessionsMap.size == 0) {
             allSessionsEl.innerHTML = 'None';
             return;
@@ -86,7 +160,7 @@ window.onload = function () {
     });
 
     adminSocket.on("sockets", function (sockets) {
-        console.dir(sockets);
+        //console.dir(sockets);
     
         allSocketsEl.innerHTML = '';
 
@@ -105,53 +179,26 @@ window.onload = function () {
         }
     });
 
-    adminSocket.on("clients", function (sessionToClient) {
-
-        sessionToClientsObj = JSON.parse(sessionToClient);
-    
-        allClientsEl.innerHTML = '';
-
-        if (sessionToClientsObj == null) {
-            allClientsEl.innerHTML = 'sockets was null';
-            return;
-        }
-
-        if (isEmpty(sessionToClientsObj)) {
-            allClientsEl.innerHTML = 'None';
-            return;
-        }
-
-        console.dir(sessionToClientsObj);
-    
-        for (var key in sessionToClientsObj) {
-            allClientsEl.innerHTML += key + ": " + sessionToClientsObj[key] + '<br>';
-        }
-    });
-
     const adminInfoEl = document.querySelector("#adminInfo");
     const allSessionsEl = document.querySelector("#allSessions");
     const allSocketsEl = document.querySelector("#allSockets");
-    const allClientsEl = document.querySelector("#allClients");
 
     const getAllSessionsEl = document.querySelector("#getAllSessions");
     const getAllSocketsEl = document.querySelector("#getAllSockets");
-    const getAllClientsEl = document.querySelector("#getAllClients");
+    
+    allSessionsEl.innerHTML = '...';
+    allSocketsEl.innerHTML = '...';
 
     getAllSessionsEl.addEventListener('click', function () {
-        getAllSessions(adminSocket);
+        getStateClientsSockets(adminSocket);
     });
 
     getAllSocketsEl.addEventListener('click', function () {
-        getAllSockets(adminSocket);
-    });
-
-    getAllClientsEl.addEventListener('click', function () {
-        getAllClients(adminSocket);
+        getSocketsAndRooms(adminSocket);
     });
 
     var intervalID = window.setInterval(function () {
-        getAllSessions(adminSocket);
-        getAllSockets(adminSocket);
-        getAllClients(adminSocket);
+        getStateClientsSockets(adminSocket);
+        getSocketsAndRooms(adminSocket);
     }, pollInterval);
 }
